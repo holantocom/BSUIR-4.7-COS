@@ -2,7 +2,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 from random import gauss
 from matplotlib.widgets import Slider, Button, RadioButtons
-import time
 
 
 def default(m, depth):
@@ -53,6 +52,9 @@ def main():
     img = plt.imread('website.jpg')
     rows, cols, colors = img.shape
 
+    axload = plt.axes([0.05, 0.8, 0.25, 0.075])
+    bload = Button(axload, 'Открыть изображение')
+
     axes = plt.axes([0.05, 0.7, 0.25, 0.03])
     slider = Slider(axes, '${}$'.format('Ядро'), 1, 17, valinit=3, valfmt=r'$%d$', valstep=2)
 
@@ -64,12 +66,19 @@ def main():
     plt.yticks([])
     image = plt.imshow(img)
 
+    def load(val):
+        path = bload.val
+        img = plt.imread(path)
+        image.set_data(img)
+        image.axes.figure.canvas.draw()
+
     def update(label):
         window = slider.val
         m = filter_algorithm(img, window, LABELS[label])
         image.set_data(m)
         image.axes.figure.canvas.draw()
 
+    bload.on_clicked(load)
     radio.on_clicked(update)
     plt.show()
 

@@ -2,6 +2,40 @@ from matplotlib import pyplot as plt
 import numpy as np
 from random import gauss
 from matplotlib.widgets import Slider, Button, RadioButtons
+from tkinter import filedialog
+
+
+convolution = np.array([
+        [[0.5], [0.75], [0.5]],
+        [[0.75], [1], [0.75]],
+        [[0.5], [0.75], [0.5]]
+])
+
+clarity = np.array([
+        [[-1], [-1], [-1]],
+        [[-1], [9], [-1]],
+        [[-1], [-1], [-1]]
+])
+
+def convolution_matrix_antialiasing(m, depth):
+    mul = np.multiply(m, convolution)
+    lev1 = np.sum(mul, axis=0)
+    lev2 = np.sum(lev1, axis=0)
+    ans = []
+    dv = 1 / 6
+    for el in lev2:
+        ans.append(int(el * dv))
+    return ans
+
+
+def improving_clarity_antialiasing(m, depth):
+    mul = np.multiply(m, clarity)
+    lev1 = np.sum(mul, axis=0)
+    lev2 = np.sum(lev1, axis=0)
+    ans = []
+    for el in lev2:
+        ans.append(int(el))
+    return ans
 
 
 def default(m, depth):
@@ -43,7 +77,9 @@ def filter_algorithm(m, window, func):
 
 LABELS = {
     'Без редактирования': default,
-    'Медианный фильтр': averaged_antialiasing
+    'Медианный фильтр': averaged_antialiasing,
+    'Матрица свертки': convolution_matrix_antialiasing,
+    'Улучшение четкости': improving_clarity_antialiasing
 }
 
 def main():
@@ -59,7 +95,7 @@ def main():
     slider = Slider(axes, '${}$'.format('Ядро'), 1, 17, valinit=3, valfmt=r'$%d$', valstep=2)
 
     rax = plt.axes([0.05, 0.4, 0.25, 0.25])
-    radio = RadioButtons(rax, ('Без редактирования', 'Медианный фильтр', 'Размытие'), active=0)
+    radio = RadioButtons(rax, ('Без редактирования', 'Медианный фильтр', 'Матрица свертки', 'Улучшение четкости'), active=0)
 
     plt.axes([0.27, 0.1, 0.8, 0.8])
     plt.xticks([])
@@ -67,8 +103,8 @@ def main():
     image = plt.imshow(img)
 
     def load(val):
-        path = bload.val
-        img = plt.imread(path)
+        filename = filedialog.askopenfilename(initialdir="/", title="Select A File")
+        img = plt.imread(filename)
         image.set_data(img)
         image.axes.figure.canvas.draw()
 
@@ -81,10 +117,6 @@ def main():
     bload.on_clicked(load)
     radio.on_clicked(update)
     plt.show()
-
-    # mu, sigma = 0, 0.84089642  # mean and standard deviation
-    # s = np.random.normal(mu, sigma, (7, 7))
-    # print(s)
 
 
 if __name__ == '__main__':
